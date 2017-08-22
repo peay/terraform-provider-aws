@@ -60,33 +60,7 @@ func resourceAwsEMRInstanceGroup() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"iops": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							ForceNew: true,
-						},
-						"size": {
-							Type:     schema.TypeInt,
-							Required: true,
-							ForceNew: true,
-						},
-						"type": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validateAwsEmrEbsVolumeType(),
-						},
-						"volumes_per_instance": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							ForceNew: true,
-							Default:  1,
-						},
-					},
-				},
-				Set: resourceAwsEMRClusterEBSConfigHash,
+				Elem:     ebsConfigurationSchema(),
 			},
 			"instance_count": {
 				Type:     schema.TypeInt,
@@ -119,32 +93,27 @@ func resourceAwsEMRInstanceGroupCreate(d *schema.ResourceData, meta interface{})
 	conn := meta.(*AWSClient).emrconn
 
 	instanceRole := emr.InstanceGroupTypeTask
-	groupConfig := &emr.InstanceGroupConfig{
-		EbsConfiguration: readEmrEBSConfig(d),
-		InstanceRole:     aws.String(instanceRole),
-		InstanceCount:    aws.Int64(int64(d.Get("instance_count").(int))),
-		InstanceType:     aws.String(d.Get("instance_type").(string)),
-		Name:             aws.String(d.Get("name").(string)),
+
+	ebsConfig := &emr.EbsConfiguration{}
+	if v, ok := d.GetOk("ebs_config"); ok && v.(*schema.Set).Len() == 1 {
+		ebsConfig = expandEbsConfiguration(v.(*schema.Set).List())
 	}
 
-	if v, ok := d.GetOk("autoscaling_policy"); ok {
-		var autoScalingPolicy *emr.AutoScalingPolicy
-
-		if err := json.Unmarshal([]byte(v.(string)), &autoScalingPolicy); err != nil {
-			return fmt.Errorf("[DEBUG] error parsing Auto Scaling Policy %s", err)
-		}
-		groupConfig.AutoScalingPolicy = autoScalingPolicy
-	}
-
-	groupConfig.Market = aws.String(emr.MarketTypeOnDemand)
-	if v, ok := d.GetOk("bid_price"); ok {
-		groupConfig.BidPrice = aws.String(v.(string))
-		groupConfig.Market = aws.String(emr.MarketTypeSpot)
+	if v, ok := d.GetOk("ebs_optimized"); ok {
+		ebsConfig.EbsOptimized = aws.Bool(v.(bool))
 	}
 
 	params := &emr.AddInstanceGroupsInput{
-		InstanceGroups: []*emr.InstanceGroupConfig{groupConfig},
-		JobFlowId:      aws.String(d.Get("cluster_id").(string)),
+		InstanceGroups: []*emr.InstanceGroupConfig{
+			{
+				InstanceRole:     aws.String(emr.InstanceRoleTypeTask),
+				InstanceCount:    aws.Int64(int64(d.Get("instance_count").(int))),
+				InstanceType:     aws.String(d.Get("instance_type").(string)),
+				Name:             aws.String(d.Get("name").(string)),
+				EbsConfiguration: ebsConfig,
+			},
+		},
+		JobFlowId: aws.String(d.Get("cluster_id").(string)),
 	}
 
 	log.Printf("[DEBUG] Creating EMR %s group with the following params: %s", instanceRole, params)
@@ -352,37 +321,6 @@ func fetchEMRInstanceGroup(conn *emr.EMR, clusterID, groupID string) (*emr.Insta
 	}
 
 	return ig, nil
-}
-
-// readEmrEBSConfig populates an emr.EbsConfiguration struct
-func readEmrEBSConfig(d *schema.ResourceData) *emr.EbsConfiguration {
-	result := &emr.EbsConfiguration{}
-	if v, ok := d.GetOk("ebs_optimized"); ok {
-		result.EbsOptimized = aws.Bool(v.(bool))
-	}
-
-	ebsConfigs := make([]*emr.EbsBlockDeviceConfig, 0)
-	if rawConfig, ok := d.GetOk("ebs_config"); ok {
-		configList := rawConfig.(*schema.Set).List()
-		for _, config := range configList {
-			conf := config.(map[string]interface{})
-			ebs := &emr.EbsBlockDeviceConfig{}
-			volumeSpec := &emr.VolumeSpecification{
-				SizeInGB:   aws.Int64(int64(conf["size"].(int))),
-				VolumeType: aws.String(conf["type"].(string)),
-			}
-			if v, ok := conf["iops"].(int); ok && v != 0 {
-				volumeSpec.Iops = aws.Int64(int64(v))
-			}
-			if v, ok := conf["volumes_per_instance"].(int); ok && v != 0 {
-				ebs.VolumesPerInstance = aws.Int64(int64(v))
-			}
-			ebs.VolumeSpecification = volumeSpec
-			ebsConfigs = append(ebsConfigs, ebs)
-		}
-	}
-	result.EbsBlockDeviceConfigs = ebsConfigs
-	return result
 }
 
 // marshalWithoutNil returns a JSON document of v stripped of any null properties
