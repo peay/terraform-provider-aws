@@ -291,37 +291,12 @@ func resourceAwsEMRCluster() *schema.Resource {
 							ForceNew: true,
 						},
 						"ebs_config": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
 							Computed: true,
 							ForceNew: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"iops": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										ForceNew: true,
-									},
-									"size": {
-										Type:     schema.TypeInt,
-										Required: true,
-										ForceNew: true,
-									},
-									"type": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validateAwsEmrEbsVolumeType(),
-									},
-									"volumes_per_instance": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										ForceNew: true,
-										Default:  1,
-									},
-								},
-							},
-							Set: resourceAwsEMRClusterEBSConfigHash,
+							Elem:     ebsConfigurationSchema(),
+							Set:      resourceAwsEMRClusterEBSConfigHash,
 						},
 						"id": {
 							Type:     schema.TypeString,
@@ -366,37 +341,12 @@ func resourceAwsEMRCluster() *schema.Resource {
 							ForceNew: true,
 						},
 						"ebs_config": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
 							Computed: true,
 							ForceNew: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"iops": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										ForceNew: true,
-									},
-									"size": {
-										Type:     schema.TypeInt,
-										Required: true,
-										ForceNew: true,
-									},
-									"type": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validateAwsEmrEbsVolumeType(),
-									},
-									"volumes_per_instance": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										ForceNew: true,
-										Default:  1,
-									},
-								},
-							},
-							Set: resourceAwsEMRClusterEBSConfigHash,
+							Elem:     ebsConfigurationSchema(),
+							Set:      resourceAwsEMRClusterEBSConfigHash,
 						},
 						"id": {
 							Type:     schema.TypeString,
@@ -2275,7 +2225,7 @@ func expandEbsConfig(configAttributes map[string]interface{}, config *emr.Instan
 		ebsConfig := &emr.EbsConfiguration{}
 
 		ebsBlockDeviceConfigs := make([]*emr.EbsBlockDeviceConfig, 0)
-		for _, rawEbsConfig := range rawEbsConfigs.(*schema.Set).List() {
+		for _, rawEbsConfig := range rawEbsConfigs.([]interface{}) {
 			rawEbsConfig := rawEbsConfig.(map[string]interface{})
 			ebsBlockDeviceConfig := &emr.EbsBlockDeviceConfig{
 				VolumesPerInstance: aws.Int64(int64(rawEbsConfig["volumes_per_instance"].(int))),
