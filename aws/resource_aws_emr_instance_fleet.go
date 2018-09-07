@@ -284,7 +284,7 @@ func expandInstanceTypeConfigs(instanceTypeConfigs []interface{}) []*emr.Instanc
 			config.Configurations = expandConfigurations(v.List())
 		}
 
-		if v, ok := configAttributes["ebs_config"].(*schema.Set); ok && v.Len() == 1 {
+		if v, ok := configAttributes["ebs_config"].(*schema.Set); ok {
 			config.EbsConfiguration = expandEbsConfiguration(v.List())
 
 			if v, ok := configAttributes["ebs_optimized"].(bool); ok {
