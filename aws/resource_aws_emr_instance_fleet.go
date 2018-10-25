@@ -104,7 +104,7 @@ func instanceTypeConfigSchema() *schema.Resource {
 				ForceNew: true,
 			},
 			"ebs_config": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: true,
 				Elem:     ebsConfigurationSchema(),
@@ -205,8 +205,8 @@ func expandInstanceFleetConfig(data *schema.ResourceData) *emr.InstanceFleetConf
 	configTargetSpotCapacity := data.Get("target_spot_capacity").(int)
 
 	config := &emr.InstanceFleetConfig{
-		InstanceFleetType: aws.String(configInstanceFleetType),
-		Name:              aws.String(configName),
+		InstanceFleetType:      aws.String(configInstanceFleetType),
+		Name:                   aws.String(configName),
 		TargetOnDemandCapacity: aws.Int64(int64(configTargetOnDemandCapacity)),
 		TargetSpotCapacity:     aws.Int64(int64(configTargetSpotCapacity)),
 	}
@@ -234,8 +234,8 @@ func expandInstanceFleetConfigs(instanceFleetConfigs []interface{}) []*emr.Insta
 		configTargetSpotCapacity := configAttributes["target_spot_capacity"].(int)
 
 		config := &emr.InstanceFleetConfig{
-			InstanceFleetType: aws.String(configInstanceFleetType),
-			Name:              aws.String(configName),
+			InstanceFleetType:      aws.String(configInstanceFleetType),
+			Name:                   aws.String(configName),
 			TargetOnDemandCapacity: aws.Int64(int64(configTargetOnDemandCapacity)),
 			TargetSpotCapacity:     aws.Int64(int64(configTargetSpotCapacity)),
 		}
@@ -284,8 +284,8 @@ func expandInstanceTypeConfigs(instanceTypeConfigs []interface{}) []*emr.Instanc
 			config.Configurations = expandConfigurations(v.List())
 		}
 
-		if v, ok := configAttributes["ebs_config"].(*schema.Set); ok {
-			config.EbsConfiguration = expandEbsConfiguration(v.List())
+		if v, ok := configAttributes["ebs_config"]; ok {
+			config.EbsConfiguration = expandEbsConfiguration(v.([]interface{}))
 
 			if v, ok := configAttributes["ebs_optimized"].(bool); ok {
 				config.EbsConfiguration.EbsOptimized = aws.Bool(v)
