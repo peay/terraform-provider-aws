@@ -4033,11 +4033,13 @@ resource "aws_emr_cluster" "tf-test-cluster" {
     instance_type  = "c4.large"
     instance_count = "1"
 
-    ebs_config {
-      size                 = "40"
-      type                 = "gp2"
-      volumes_per_instance = 1
-    }
+    ebs_config = [
+      {
+        size                 = "40"
+        type                 = "gp2"
+        volumes_per_instance = 1
+      }
+    ]
 
     bid_price = "0.30"
 
@@ -4394,12 +4396,14 @@ resource "aws_emr_cluster" "tf-test-cluster" {
     instance_type  = "r4.xlarge"
     name           = "CoreInstanceGroup"
 
-    ebs_config {
-      iops                 = 0
-      size                 = 100
-      type                 = "gp2"
-      volumes_per_instance = 1
-    }
+    ebs_config = [
+      {
+        iops                 = 0
+        size                 = 100
+        type                 = "gp2"
+        volumes_per_instance = 1
+      }
+    ]
   }
 
   instance_group {
@@ -4408,12 +4412,14 @@ resource "aws_emr_cluster" "tf-test-cluster" {
     instance_type  = "r4.xlarge"
     name           = "TaskInstanceGroup"
 
-    ebs_config {
-      iops                 = 0
-      size                 = 100
-      type                 = "gp2"
-      volumes_per_instance = 1
-    }
+    ebs_config = [
+      {
+        iops                 = 0
+        size                 = 100
+        type                 = "gp2"
+        volumes_per_instance = 1
+      }
+    ]
   }
 
   tags = {
@@ -4720,11 +4726,13 @@ resource "aws_emr_cluster" "tf-test-cluster" {
     instance_type  = "c4.large"
     instance_count = "1"
 
-    ebs_config {
-      size                 = "40"
-      type                 = "gp2"
-      volumes_per_instance = 1
-    }
+    ebs_config = [
+      {
+        size                 = "40"
+        type                 = "gp2"
+        volumes_per_instance = 1
+      }
+    ]
 
     bid_price = "0.30"
 
@@ -5073,11 +5081,13 @@ resource "aws_emr_cluster" "tf-test-cluster" {
     instance_type  = "c4.large"
     instance_count = "1"
 
-    ebs_config {
-      size                 = "500"
-      type                 = "st1"
-      volumes_per_instance = 1
-    }
+    ebs_config = [
+      {
+        size                 = "500"
+        type                 = "st1"
+        volumes_per_instance = 1
+      }
+    ]
 
     bid_price = "0.30"
 
@@ -5424,11 +5434,13 @@ resource "aws_emr_cluster" "tf-test-cluster" {
     instance_type  = "c4.large"
     instance_count = "1"
 
-    ebs_config {
-      size                 = "500"
-      type                 = "st1"
-      volumes_per_instance = 1
-    }
+    ebs_config = [
+      {
+        size                 = "500"
+        type                 = "st1"
+        volumes_per_instance = 1
+      }
+    ]
 
     bid_price = "0.30"
 
@@ -6226,11 +6238,13 @@ resource "aws_emr_cluster" "tf-test-cluster" {
         {
           bid_price_as_percentage_of_on_demand_price = 80
           ebs_optimized = true
-          ebs_config {
-            size                 = 100
-            type                 = "gp2"
-            volumes_per_instance = 1
-          }
+          ebs_config = [
+            {
+              size                 = 100
+              type                 = "gp2"
+              volumes_per_instance = 1
+            }
+          ]
           instance_type     = "m3.xlarge"
           weighted_capacity = 1
         }

@@ -108,6 +108,7 @@ func instanceTypeConfigSchema() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				Elem:     ebsConfigurationSchema(),
+				Set:      resourceAwsEMRClusterEBSConfigHash,
 			},
 			"instance_type": {
 				Type:     schema.TypeString,
