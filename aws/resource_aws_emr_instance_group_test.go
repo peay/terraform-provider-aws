@@ -626,10 +626,12 @@ func testAccAWSEmrInstanceGroupConfig_ebsConfig(r int, o bool) string {
     instance_count = 1
     instance_type  = "c4.large"
     ebs_optimized = %t
-    ebs_config {
-      size = 10
-      type = "gp2"
-    }
+    ebs_config = [
+      {
+        size = 10
+        type = "gp2"
+      }
+    ]
   }
 `, r, o)
 }
